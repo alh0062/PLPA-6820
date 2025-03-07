@@ -1,0 +1,132 @@
+---
+title: "Neff_CodingChallenge4"
+author: "AJ Neff"
+date: "2025-02-27"
+output:
+  md_document:
+    variant: gfm
+  html_document:
+    toc: true
+    df_print: paged
+  pdf_document:
+    toc: true
+    toc_float: true
+  word_document: null
+---
+
+The data is accessible via the link in this citation:
+Noel, Z.A., Roze, L.V., Breunig, M., Trail, F. 2022. Endophytic fungi as promising biocontrol agent to protect wheat from Fusarium graminearum head blight. Plant Disease. 
+[Link text](https://doi.org/10.1094/PDIS-06-21-1253-RE)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+a. YAML header includes title, author, date, output
+b. Literate programming is a mixture of input code and outputs of code that allow for fully reproducible documents.
+
+# Question 2
+
+```{r}
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+```
+
+```{r}
+library(readr)
+MycotoxinData <- read.csv("MycotoxinData.csv",na.strings = "na")
+View(MycotoxinData)
+```
+
+```{r}
+DON_data <- read.csv("MycotoxinData.csv", na.strings = "na")
+str(DON_data)
+```
+
+## CC3 Q1
+```{r}
+library(ggplot2)
+DON_plot <- ggplot(MycotoxinData, aes(x = Treatment, y = DON, fill = Cultivar)) +
+  geom_boxplot() +
+  xlab("") +
+  ylab("DON (ppm)") +
+  geom_jitter(alpha = 0.6, pch = 21, color = "black", position = position_jitterdodge()) +
+  scale_fill_manual(values = c(cbbPalette[[2]], cbbPalette[[8]])) +
+  facet_wrap(~Cultivar) + 
+  theme_classic()
+DON_plot
+recordPlot()
+```
+
+## CC3 Q2
+```{r}
+MycotoxinData$Treatment <- factor(MycotoxinData$Treatment, levels = c("NTC", "Fg", "Fg + 37", "Fg + 40", "Fg + 70"))
+```
+
+## CC3 Q3
+```{r}
+DON15 <- ggplot (MycotoxinData, aes(x = Treatment, y = X15ADON, fill = Cultivar)) +
+  geom_boxplot(outliers = F) +
+  xlab("") +
+  ylab("DON (ppm)") +
+  geom_jitter(alpha = 0.6, pch = 21, color = "black", position = position_jitterdodge()) +
+  scale_fill_manual(values = c(cbbPalette[[2]], cbbPalette[[8]])) +
+  facet_wrap(~Cultivar) + 
+  theme_classic()
+DON15
+recordPlot()
+```
+
+```{r}
+DONSeed <- ggplot (MycotoxinData, aes(x = Treatment, y = MassperSeed_mg, fill = Cultivar)) +
+  geom_boxplot(outliers = F) +
+  xlab("") +
+  ylab("DON (ppm)") +
+  geom_jitter(alpha = 0.6, pch = 21, color = "black", position = position_jitterdodge()) +
+  scale_fill_manual(values = c(cbbPalette[[2]], cbbPalette[[8]])) +
+  facet_wrap(~Cultivar) + 
+  theme_classic()
+DONSeed
+recordPlot()
+```
+
+## CC3 Q4
+```{r}
+library(tidyverse)
+library(ggpubr)
+library(ggrepel)
+```
+
+```{r}
+ggarrange(DON_plot, DON15, DONSeed, labels = "auto", ncol = 3, nrow = 1, common.legend = T)
+```
+
+## CC3 Q5
+```{r}
+stats_DON_plot <- DON_plot +
+  geom_pwc(aes(group = Treatment), method = "t_test", label = "p.adj.format")
+stats_DON_plot
+recordPlot()
+```
+
+```{r}
+stats_DON15 <- DON15 +
+  geom_pwc(aes(group = Treatment), method = "t_test", label = "p.adj.format")
+stats_DON15
+recordPlot()
+```
+
+```{r}
+stats_DONSeed <- DONSeed +
+  geom_pwc(aes(group = Treatment), method = "t_test", label = "p.adj.format")
+stats_DONSeed
+recordPlot()
+```
+
+## Combined
+```{r}
+ggarrange(stats_DON_plot, stats_DON15, stats_DONSeed, labels = "auto", ncol = 3, nrow = 1, common.legend = T)
+```
+
+# Question 3
+
