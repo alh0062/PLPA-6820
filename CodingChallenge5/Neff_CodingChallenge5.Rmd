@@ -2,7 +2,11 @@
 title: "CodingChallenge5"
 author: "AJ Neff"
 date: "2025-03-20"
-output: word_document
+output: 
+  pdf_document:
+  md_document:
+    variant: gfm
+  word_document:
 ---
 
 ```{r setup, include=FALSE}
@@ -61,4 +65,5 @@ ggplot(alpha_average2_diff,aes(x = Time_Point, y = value, color = diff)) +geom_l
 xlab("Time (hrs)") + ylab("Difference from soil in Pielou's Evenness")
 
 ```
+
 # Question 7
