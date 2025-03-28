@@ -1,0 +1,64 @@
+---
+title: "CodingChallenge5"
+author: "AJ Neff"
+date: "2025-03-20"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1 and 2
+```{r}
+library(tidyverse)
+Diversity.Data <- read.csv("DiversityData.csv")
+str(Diversity.Data)
+Meta.data <- read.csv("Metadata.csv")
+str(Meta.data)
+```
+```{r}
+alpha <- left_join(Diversity.Data, Meta.data, by = "Code") # adding the meta data to the diversity data based on on the common column of Code
+head(alpha)
+```
+
+# Question 3
+```{r}
+alpha2 <- alpha %>%
+  mutate(even = shannon/log(richness))
+
+alpha$even <- alpha$shannon/log(alpha$richness)
+```
+
+# Question 4
+```{r}
+alpha_average <- alpha2 %>%
+  select(Time_Point, Crop, even) %>% 
+  group_by(Crop, Time_Point) %>% 
+  summarise(Mean.even = mean(even),
+            n = n(), 
+            sd.dev = sd(even)) %>%
+  mutate(std.err = sd.dev/sqrt(n))
+```
+
+# Question 5
+```{r}
+alpha_average2 <- alpha_average %>%
+  select(Time_Point, Crop, Mean.even) %>% 
+pivot_wider(names_from = Crop, values_from = Mean.even) %>%
+mutate(diff.cotton.even = Soil - Cotton) %>% 
+mutate(diff.soybean.even = Soil - Soybean)
+```
+
+
+# Question 6
+```{r}
+alpha_average2_diff <- alpha_average2 %>%
+  select(Time_Point, diff.cotton.even, diff.soybean.even) %>%
+  pivot_longer(c(diff.cotton.even, diff.soybean.even), names_to ="diff")
+library(ggplot2)
+ggplot(alpha_average2_diff,aes(x = Time_Point, y = value, color = diff)) +geom_line()+
+xlab("Time (hrs)") + ylab("Difference from soil in Pielou's Evenness")
+
+```
+# Question 7
