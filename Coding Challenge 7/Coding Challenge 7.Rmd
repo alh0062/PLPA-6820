@@ -1,0 +1,99 @@
+---
+title: "Coding Challenge 7"
+author: "AJ Neff"
+date: "2025-04-03"
+output: 
+  md_document:
+    variant: gfm
+  pdf_document:
+  word_document:
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+```
+
+# Question 1
+```{r}
+library(readr)
+Plant.Emerge <- read.csv("PlantEmergence.csv")
+```
+
+```{r}
+library(tidyverse)
+library(lme4)
+library(emmeans)
+library(multcomp)
+library(multcompView)
+```
+
+```{r}
+Plant.Emerge$Treatment <- as.factor(Plant.Emerge$Treatment)
+Plant.Emerge$DaysAfterPlanting <- as.factor(Plant.Emerge$DaysAfterPlanting)
+Plant.Emerge$Rep <- as.factor(Plant.Emerge$Rep)
+```
+
+# Question 2
+```{r}
+Emerge.Model <- lm(Emergence~Treatment*DaysAfterPlanting, Plant.Emerge)
+summary(Emerge.Model)
+anova(Emerge.Model)
+```
+# Question 3
+```{r}
+Emerge.Simp.Model <- lm(Emergence~Treatment+DaysAfterPlanting, Plant.Emerge)
+summary(Emerge.Simp.Model)
+anova(Emerge.Simp.Model)
+```
+
+# Question 4
+```{r}
+LSM.Treatment <- emmeans(Emerge.Model, ~ Treatment)
+summary(LSM.Treatment)
+```
+```{r}
+turkey_result <- cld(LSM.Treatment)
+turkey_result
+```
+
+# Question 5
+```{r}
+plot_cldbars_onefactor <- function(lm_model, factor) {
+  data <- lm_model$model
+  variables <- colnames(lm_model$model)
+  dependent_var <- variables[1]
+  independent_var <- variables[2:length(variables)]
+
+  lsmeans <- emmeans(lm_model, as.formula(paste("~", factor))) # estimate lsmeans 
+  Results_lsmeans <- cld(lsmeans, alpha = 0.05, reversed = TRUE, details = TRUE, Letters = letters) # contrast with Tukey adjustment by default.
+# Extracting the letters for the bars
+  sig.diff.letters <- data.frame(Results_lsmeans$emmeans[,1], 
+                                 str_trim(Results_lsmeans$emmeans[,7]))
+  colnames(sig.diff.letters) <- c(factor, "Letters")
+  
+  # for plotting with letters from significance test
+  ave_stand2 <- lm_model$model %>%
+    group_by(!!sym(factor)) %>%
+    dplyr::summarize(
+      ave.emerge = mean(.data[[dependent_var]], na.rm = TRUE),
+      se = sd(.data[[dependent_var]]) / sqrt(n())
+    ) %>%
+    left_join(sig.diff.letters, by = factor) %>%
+    mutate(letter_position = ave.emerge + 10 * se)
+  
+  plot <- ggplot(data, aes(x = !! sym(factor), y = !! sym(dependent_var))) + 
+    stat_summary(fun = mean, geom = "bar") +
+    stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.5) +
+    ylab("Number of emerged plants") + 
+    geom_jitter(width = 0.02, alpha = 0.5) +
+    geom_text(data = ave_stand2, aes(label = Letters, y = letter_position), size = 5) +
+    xlab(as.character(factor)) +
+    theme_classic()
+  
+  return(plot)
+}
+```
+
+# Question 6
+
