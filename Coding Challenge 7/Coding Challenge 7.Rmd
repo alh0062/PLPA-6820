@@ -3,9 +3,9 @@ title: "Coding Challenge 7"
 author: "AJ Neff"
 date: "2025-04-03"
 output: 
+  pdf_document:
   md_document:
     variant: gfm
-  pdf_document:
   word_document:
 ---
 
@@ -97,3 +97,4 @@ plot_cldbars_onefactor <- function(lm_model, factor) {
 
 # Question 6
 
+https://github.com/alh0062/PLPA-6820/tree/main/Coding%20Challenge%207
