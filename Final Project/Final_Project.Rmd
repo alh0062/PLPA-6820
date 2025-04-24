@@ -1,0 +1,121 @@
+---
+title: "Final Project"
+author: "AJ Neff"
+date: "2025-04-10"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Does purposeful dog training relate to human-dog physical acvtivity, fitness, and dog cognition?
+
+# Project Info
+The analysis performed in this project is to compare fitness testing for both human and dog participants, as well as the cognitive results for the dog participants. 
+
+# Methods
+We recruited dogs and their human companions for testing. 13 humans (age: 42±18
+years;1M/12F) were tested for fitness (6 minute walk, chair stand, handgrip test) and asked a questionnaire about physical activity with their dog and the Dog Executive Function Scale (DEFS). Training volume calculation included formal training and sport involvement. Dogs(N=19; age: 4±3years; 10M/9F) were also tested for fitness (percent fat, back up, squat progression test) and cognition (object choice, unsolvable task). 
+
+The unsolvable task is a 60 second task where the dog cannot access a treat in a box. They are being evaluated for time trying to get the treat (att_task), looking at the owner (gaze_owner), or walking away (walk_away). This is a cognitive test.
+
+The DEFS is for measuring executive function of the dog. The higher the score, the better the executive function.
+
+# Analysis
+```{r}
+# reading in packages
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(readr)
+```
+
+```{r}
+# read in the data
+Dog_Data <- read.csv("Reproducibility Project.csv")
+```
+
+```{r}
+activity_summary <- Dog_Data %>%
+  group_by(owner) %>%
+  summarise(
+    Avg_Cardio_Hrs = mean(Hrs_Cardio, na.rm = TRUE),
+    Walks_Per_Week = mean(Walk_P_Week, na.rm = TRUE),
+    Vigorous_Days = mean(Vig_Day_P_Wk, na.rm = TRUE),
+    Moderate_Days = mean(Mod_day_wk, na.rm = TRUE)
+  )
+
+print(activity_summary)
+```
+
+
+```{r}
+ggplot(Dog_Data, aes(x = Walk_min_day)) +
+  geom_histogram(binwidth = 10, fill = "#69b3a2", color = "black", boundary = 0) +
+  labs(
+    title = "Distribution of Daily Walking Time",
+    x = "Minutes Walked per Day",
+    y = "Number of Dogs"
+  ) +
+  theme_minimal()
+```
+
+
+
+This is analyzing the results for the Unsolvable Task and the DEFS results. It shows that the less time spent gazing at the owner during the Unsolvable Task, the higher the DEFS score of the dog.
+```{r}
+ggplot(Dog_Data, aes(x = gaze_owner, y = DEFS)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Gaze at Owner vs Dog Executive Function Scale (DEFS)",
+    x = "Time Spent Gazing at Owner (sec)",
+    y = "DEFS"
+  ) +
+  theme_minimal()
+
+```
+
+
+This is analyzing the results for the Unsolvable Task and the DEFS results. It shows that the more attention on task during the Unsolvable Task, the higher the DEFS score of the dog.
+```{r}
+ggplot(Dog_Data, aes(x = att_task, y = DEFS)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Attention on Task vs Dog Executive Function Scale (DEFS)",
+    x = "Attention on Task (sec)",
+    y = "DEFS"
+  ) +
+  theme_minimal()
+
+```
+
+
+Reshape and standardize the data comparing the human test results.
+```{r}
+fitness_z <- Dog_Data %>%
+  select(dog, walk_test_m, chair_stand, grip_kg) %>%
+  pivot_longer(cols = -dog, names_to = "Test", values_to = "RawScore") %>%
+  group_by(Test) %>%
+  mutate(Z_Score = (RawScore - mean(RawScore, na.rm = TRUE)) / sd(RawScore, na.rm = TRUE))
+
+# Plot
+ggplot(fitness_z, aes(x = dog, y = Z_Score, fill = Test)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Relative Fitness Test Performance (Z-scores)",
+    x = "Dog ID",
+    y = "Standardized Score"
+  ) +
+  coord_flip() # horizontal bars for clarity
+
+```
+
+
+[link to my github](https://github.com/alh0062/final_project)
+
